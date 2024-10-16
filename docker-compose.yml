@@ -1,0 +1,45 @@
+version: '3.8'
+
+networks:
+  electronicstorenetwork:
+    driver: bridge
+
+services:
+  mysql:
+    build:
+      context: ./database
+      dockerfile: Dockerfile.mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: electronic_store
+    ports:
+      - "3307:3306"
+    networks:
+      - electronicstorenetwork
+
+  backend:
+    build:
+      context: ./ElectronicStoreBackend
+      dockerfile: Dockerfile.backend
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    networks:
+      - electronicstorenetwork
+
+  frontend:
+    build:
+      context: ./ElectronicStoreFrontend
+      dockerfile: Dockerfile.frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - electronicstorenetwork
+    environment:
+      - REACT_APP_API_URL=http://backend:8080
